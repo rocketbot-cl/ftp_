@@ -25,6 +25,7 @@ Para instalar librerias se debe ingresar por terminal a la carpeta "libs"
 """
 import ftplib
 import os
+
 """
     Obtengo el modulo que fue invocado
 """
@@ -38,23 +39,26 @@ if module == "conn_ftp":
     pass_ = GetParams("pass_")
     var_ = GetParams("var_")
 
-    ftp = ftplib.FTP(server_)
-    #print(ftp.login(user_,pass_))
-    conn = ftp.login(user_,pass_)
+    try:
 
-    if "OK" in conn:
+        ftp = ftplib.FTP(server_)
+        # print(ftp.login(user_,pass_))
+        conn = ftp.login(user_, pass_)
+
         res = True
-    else:
+
+    except:
+        PrintException()
         res = False
 
-    SetVar(var_,res)
+    SetVar(var_, res)
 
 if module == "list_":
-
     var_ = GetParams("var_")
 
     files = ftp.nlst()
-    files = str(files).replace("'.',","").replace("'..',","").replace(' ','')
+    print('FILES', files)
+    files = str(files).replace("'.',", "").replace("'..',", "").replace(' ', '')
     SetVar(var_, files)
 
 if module == "mkdir_":
@@ -71,37 +75,37 @@ if module == "mkdir_":
     else:
         res = False
 
-    SetVar(var_,res)
-
+    SetVar(var_, res)
 
 if module == "go_dir":
-
     dir_ = GetParams("dir_")
     var_ = GetParams("var_")
 
     go_ = ftp.cwd(dir_)
     pwd_ = ftp.pwd()
 
-    SetVar(var_,pwd_)
+    SetVar(var_, pwd_)
 
 if module == "upload_":
 
     file_ = GetParams("file_")
     var_ = GetParams("var_")
 
-    filename = os.path.basename(file_)
+    try:
 
-    f = open(file_, 'rb')
-    up = ftp.storbinary('STOR ' + filename + '', f)
+        filename = os.path.basename(file_)
 
-    if "successfully" in up:
+        f = open(file_, 'rb')
+        up = ftp.storbinary('STOR ' + filename + '', f)
+
         res = True
-    else:
+
+        f.close()
+    except:
+        PrintException()
         res = False
 
-    SetVar(var_,res)
-
-    f.close()
+    SetVar(var_, res)
 
 if module == "download_":
 
@@ -109,28 +113,28 @@ if module == "download_":
     path_ = GetParams("path_")
     var_ = GetParams("var_")
 
-    down_ = ftp.retrbinary('RETR ' + file_ + '', open(os.path.join(path_,file_), 'wb').write)
+    try:
 
-    if "successfully" in down_:
+        down_ = ftp.retrbinary('RETR ' + file_ + '', open(os.path.join(path_, file_), 'wb').write)
+
         res = True
-    else:
+
+    except:
+        PrintException()
         res = False
 
     SetVar(var_, res)
 
 if module == "delete_file":
-
     file_ = GetParams("file_")
     var_ = GetParams("var_")
 
-    del_ = ftp.delete(file_)
-
-    if "Deleted" in del_:
+    try:
+        del_ = ftp.delete(file_)
         res = True
-    else:
+
+    except:
+        PrintException()
         res = False
 
     SetVar(var_, res)
-
-
-
