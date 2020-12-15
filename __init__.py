@@ -35,16 +35,22 @@ module = GetParams("module")
 if module == "conn_ftp":
 
     server_ = GetParams("server_")
+    port = GetParams("port")
     user_ = GetParams("user_")
     pass_ = GetParams("pass_")
     var_ = GetParams("var_")
 
     try:
+        ftp = ftplib.FTP_TLS()
+        ftp.ssl_version = ssl.PROTOCOL_SSLv23
 
-        ftp = ftplib.FTP(server_)
-        # print(ftp.login(user_,pass_))
+        if port:
+            ftp.connect(server_, int(port))
+        else:
+            ftp.connect(server_)
+        ftp.auth()
+        ftp.prot_p()
         conn = ftp.login(user_, pass_)
-
         res = True
 
     except:
@@ -96,6 +102,7 @@ if module == "upload_":
         filename = os.path.basename(file_)
 
         f = open(file_, 'rb')
+        ftplib._SSLSocket = None
         up = ftp.storbinary('STOR ' + filename + '', f)
 
         res = True
