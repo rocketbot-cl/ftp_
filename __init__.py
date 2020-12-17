@@ -25,6 +25,7 @@ Para instalar librerias se debe ingresar por terminal a la carpeta "libs"
 """
 import ftplib
 import os
+import socket
 
 """
     Obtengo el modulo que fue invocado
@@ -40,16 +41,52 @@ if module == "conn_ftp":
     pass_ = GetParams("pass_")
     var_ = GetParams("var_")
 
-    try:
-        ftp = ftplib.FTP_TLS()
-        ftp.ssl_version = ssl.PROTOCOL_SSLv23
 
+    class ImplicitFTP_TLS(ftplib.FTP_TLS):
+        """FTP_TLS subclass that automatically wraps sockets in SSL to support implicit FTPS."""
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self._sock = None
+
+        @property
+        def sock(self):
+            """Return the socket."""
+            return self._sock
+
+        @sock.setter
+        def sock(self, value):
+            """When modifying the socket, ensure that it is ssl wrapped."""
+            if value is not None and not isinstance(value, ssl.SSLSocket):
+                value = self.context.wrap_socket(value)
+            self._sock = value
+
+
+    def ftp_connect(server, port):
         if port:
-            ftp.connect(server_, int(port))
+            ftp.connect(server, int(port))
         else:
-            ftp.connect(server_)
-        ftp.auth()
+
+            ftp.connect(server)
+
+
+    try:
+
+        ftp = ImplicitFTP_TLS()
+        ftp.debugging = 2
+
+        try:
+            ftp_connect(server_, port)
+            ftp.af = socket.AF_INET6
+        except:
+
+            ftp = ftplib.FTP_TLS()
+            ftp.ssl_version = ssl.PROTOCOL_SSLv23
+            ftp.debugging = 2
+            ftp_connect(server_, port)
+            ftp.auth()
         ftp.prot_p()
+
         conn = ftp.login(user_, pass_)
         res = True
 
@@ -102,8 +139,16 @@ if module == "upload_":
         filename = os.path.basename(file_)
 
         f = open(file_, 'rb')
-        ftplib._SSLSocket = None
-        up = ftp.storbinary('STOR ' + filename + '', f)
+        print(ftp.pwd())
+        try:
+            # ftplib._SSLSocket = None
+            print("mode")
+
+            up = ftp.storbinary('STOR ' + filename + '', f)
+        except:
+            PrintException()
+            ftplib._SSLSocket = None
+            up = ftp.storbinary('STOR ' + filename + '', f)
 
         res = True
 
