@@ -102,7 +102,20 @@
                             "en": "Password:"
                         },
                         "id": "pass_",
-                        "css": "col-md-6"
+                        "css": "col-md-4"
+                    },
+                    {
+                        "type": "checkbox",
+                        "placeholder": {
+                            "es": "******",
+                            "en": "******"
+                        },
+                        "title": {
+                            "es": "TLS:",
+                            "en": "TLS:"
+                        },
+                        "id": "tls",
+                        "css": "col-md-2"
                     }
                 ]
             },

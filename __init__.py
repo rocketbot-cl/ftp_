@@ -39,6 +39,7 @@ if module == "conn_ftp":
     port = GetParams("port")
     user_ = GetParams("user_")
     pass_ = GetParams("pass_")
+    tls = GetParams("tls")
     var_ = GetParams("var_")
 
 
@@ -70,22 +71,30 @@ if module == "conn_ftp":
             ftp.connect(server)
 
 
+    if tls is not None:
+        tls = eval(tls)
+
     try:
+        if tls:
 
-        ftp = ImplicitFTP_TLS()
-        ftp.debugging = 2
+            ftp.debugging = 2
 
-        try:
-            ftp_connect(server_, port)
-            ftp.af = socket.AF_INET6
-        except:
-
-            ftp = ftplib.FTP_TLS()
+            try:
+                ftp = ImplicitFTP_TLS()
+                ftp_connect(server_, port)
+                ftp.af = socket.AF_INET6
+            except:
+                ftp = ftplib.FTP_TLS()
+                ftp.ssl_version = ssl.PROTOCOL_SSLv23
+                ftp.debugging = 2
+                ftp_connect(server_, port)
+                ftp.auth()
+            ftp.prot_p()
+        else:
+            ftp = ftplib.FTP()
             ftp.ssl_version = ssl.PROTOCOL_SSLv23
             ftp.debugging = 2
             ftp_connect(server_, port)
-            ftp.auth()
-        ftp.prot_p()
 
         conn = ftp.login(user_, pass_)
         res = True
