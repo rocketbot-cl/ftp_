@@ -26,24 +26,52 @@ Para instalar librerias se debe ingresar por terminal a la carpeta "libs"
 import ftplib
 import os
 import socket
+import ssl
 
 """
     Obtengo el modulo que fue invocado
 """
-global ftp
+global ftp_connection
 module = GetParams("module")
 
-if module == "conn_ftp":
+class FTP_Connection:
+    def __init__(self, server, port, user, pwd, tls, directory=None):
+        self.server = server
+        self.port = port
+        self.user = user
+        self.pwd = pwd
+        self.tls = tls
+        self.dir = directory
 
-    server_ = GetParams("server_")
-    port = GetParams("port")
-    user_ = GetParams("user_")
-    pass_ = GetParams("pass_")
-    tls = GetParams("tls")
-    var_ = GetParams("var_")
+    def config(self):
+        global ImplicitFTP_TLS, ftplib, ftp_connect, socket
+        
+        if self.tls:
+            try:
+                print("Trying first tls connection")
+                ftp = ImplicitFTP_TLS()
+                ftp_connect(ftp, self.server, self.port)
+                ftp.af = socket.AF_INET6
+            except:
+                print("Trying second tls connection")
+                ftp = ftplib.FTP_TLS()
+                ftp.debugging = 2
+                ftp.ssl_version = ssl.PROTOCOL_SSLv23
+                ftp_connect(ftp, self.server, self.port)
+                ftp.auth()
+            ftp.prot_p()
+        else:
+            ftp = ftplib.FTP()
+            ftp.ssl_version = ssl.PROTOCOL_SSLv23
+            ftp_connect(ftp, self.server, self.port)
+        return ftp
+        
+    def move_to_dir(self, directory=None):
+        if directory:
+            self.dir = directory
+        
 
-
-    class ImplicitFTP_TLS(ftplib.FTP_TLS):
+class ImplicitFTP_TLS(ftplib.FTP_TLS):
         """FTP_TLS subclass that automatically wraps sockets in SSL to support implicit FTPS."""
 
         def __init__(self, *args, **kwargs):
@@ -62,41 +90,31 @@ if module == "conn_ftp":
                 value = self.context.wrap_socket(value)
             self._sock = value
 
-
-    def ftp_connect(server, port):
+            
+def ftp_connect(ftp, server, port):
         if port:
             ftp.connect(server, int(port))
         else:
 
             ftp.connect(server)
 
+        
+if module == "conn_ftp":
+
+    server_ = GetParams("server_")
+    port = GetParams("port")
+    user_ = GetParams("user_")
+    pass_ = GetParams("pass_")
+    tls = GetParams("tls")
+    var_ = GetParams("var_")
 
     if tls is not None:
         tls = eval(tls)
 
     try:
-        if tls:
-
-            ftp.debugging = 2
-
-            try:
-                ftp = ImplicitFTP_TLS()
-                ftp_connect(server_, port)
-                ftp.af = socket.AF_INET6
-            except:
-                ftp = ftplib.FTP_TLS()
-                ftp.ssl_version = ssl.PROTOCOL_SSLv23
-                ftp.debugging = 2
-                ftp_connect(server_, port)
-                ftp.auth()
-            ftp.prot_p()
-        else:
-            ftp = ftplib.FTP()
-            ftp.ssl_version = ssl.PROTOCOL_SSLv23
-            ftp.debugging = 2
-            ftp_connect(server_, port)
-
-        conn = ftp.login(user_, pass_)
+        ftp_connection = FTP_Connection(server_, port, user_, pass_, tls)
+        ftp = ftp_connection.config()
+        conn = ftp.login(ftp_connection.user, ftp_connection.pwd)
         res = True
 
     except:
@@ -107,16 +125,32 @@ if module == "conn_ftp":
 
 if module == "list_":
     var_ = GetParams("var_")
+    
+    try:
+        ftp = ftp_connection.config()
+        conn = ftp.login(ftp_connection.user, ftp_connection.pwd)
+        if ftp_connection.dir:
+            go_ = ftp.cwd(ftp_connection.dir)
+            pwd_ = ftp.pwd()
 
-    files = ftp.nlst()
-    print('FILES', files)
-    files = str(files).replace("'.',", "").replace("'..',", "").replace(' ', '')
-    SetVar(var_, files)
+        files = ftp.nlst()
+        print('FILES', files)
+        files = str(files).replace("'.',", "").replace("'..',", "").replace(' ', '')
+        SetVar(var_, files)
+    except Exception as e:
+        PrintException()
+        raise e
 
 if module == "mkdir_":
 
     dir_ = GetParams("dir_")
     var_ = GetParams("var_")
+
+    ftp = ftp_connection.config()
+    conn = ftp.login(ftp_connection.user, ftp_connection.pwd)
+    if ftp_connection.dir:
+        go_ = ftp.cwd(ftp_connection.dir)
+        pwd_ = ftp.pwd()
 
     new_ = ftp.mkd(dir_)
 
@@ -133,7 +167,14 @@ if module == "go_dir":
     dir_ = GetParams("dir_")
     var_ = GetParams("var_")
 
-    go_ = ftp.cwd(dir_)
+    ftp = ftp_connection.config()
+    conn = ftp.login(ftp_connection.user, ftp_connection.pwd)
+
+    ftp_connection.move_to_dir(dir_)
+    
+
+    
+    go_ = ftp.cwd(ftp_connection.dir)
     pwd_ = ftp.pwd()
 
     SetVar(var_, pwd_)
@@ -142,26 +183,35 @@ if module == "upload_":
 
     file_ = GetParams("file_")
     var_ = GetParams("var_")
+    from time import sleep
 
     try:
+        ftp = ftp_connection.config()
+        conn = ftp.login(ftp_connection.user, ftp_connection.pwd)
+        if ftp_connection.dir:
+            go_ = ftp.cwd(ftp_connection.dir)
+            pwd_ = ftp.pwd()
 
         filename = os.path.basename(file_)
 
-        f = open(file_, 'rb')
-        print(ftp.pwd())
-        try:
-            # ftplib._SSLSocket = None
-            print("mode")
-
-            up = ftp.storbinary('STOR ' + filename + '', f)
-        except:
-            PrintException()
+        try: 
             ftplib._SSLSocket = None
-            up = ftp.storbinary('STOR ' + filename + '', f)
+            with open(file_, 'rb') as f:
+                up = ftp.storbinary('STOR ' + filename + '', f)
+        except:
+            ftp = ftp_connection.config()
+            conn = ftp.login(ftp_connection.user, ftp_connection.pwd)
+            if ftp_connection.dir:
+                go_ = ftp.cwd(ftp_connection.dir)
+                pwd_ = ftp.pwd()
+            
+
+            with open(file_, 'rb') as f:
+                up = ftp.storbinary('STOR ' + filename + '', f)
+#            up = ftp.storbinary('STOR ' + filename + '', f)
 
         res = True
 
-        f.close()
     except:
         PrintException()
         res = False
@@ -176,6 +226,12 @@ if module == "download_":
 
     try:
 
+        ftp = ftp_connection.config()
+        conn = ftp.login(ftp_connection.user, ftp_connection.pwd)
+        if ftp_connection.dir:
+            go_ = ftp.cwd(ftp_connection.dir)
+            pwd_ = ftp.pwd()
+        
         down_ = ftp.retrbinary('RETR ' + file_ + '', open(os.path.join(path_, file_), 'wb').write)
 
         res = True
@@ -191,6 +247,13 @@ if module == "delete_file":
     var_ = GetParams("var_")
 
     try:
+
+        ftp = ftp_connection.config()
+        conn = ftp.login(ftp_connection.user, ftp_connection.pwd)
+        if ftp_connection.dir:
+            go_ = ftp.cwd(ftp_connection.dir)
+            pwd_ = ftp.pwd()
+        
         del_ = ftp.delete(file_)
         res = True
 
