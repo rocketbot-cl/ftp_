@@ -341,10 +341,6 @@
                             "es": "Tiempo de espera:",
                             "en": "Timeout:"
                         },
-                        "help": {
-                            "es": "Nombre de variable sin {}",
-                            "en": "Variable name without {}"
-                        },
                         "id": "timeout",
                         "css": "col-md-12"
                     },
