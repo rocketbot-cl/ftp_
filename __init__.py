@@ -35,7 +35,7 @@ global ftp_connection
 module = GetParams("module")
 
 class FTP_Connection:
-    def __init__(self, server, port, user, pwd, tls, directory=None):
+    def __init__(self, server, port, user, pwd, tls, directory=""):
         self.server = server
         self.port = port
         self.user = user
@@ -44,7 +44,7 @@ class FTP_Connection:
         self.dir = directory
 
     def config(self):
-        global ImplicitFTP_TLS, ftplib, ftp_connect, socket
+        global ImplicitFTP_TLS, ftplib, ftp_connect, socket, FTP_TLS_RB, FTP_RB
         
         if self.tls:
             try:
@@ -54,22 +54,100 @@ class FTP_Connection:
                 ftp.af = socket.AF_INET6
             except:
                 print("Trying second tls connection")
-                ftp = ftplib.FTP_TLS()
+                ftp = FTP_TLS_RB()
                 ftp.debugging = 2
                 ftp.ssl_version = ssl.PROTOCOL_SSLv23
                 ftp_connect(ftp, self.server, self.port)
                 ftp.auth()
             ftp.prot_p()
         else:
-            ftp = ftplib.FTP()
+            ftp = FTP_RB()
             ftp.ssl_version = ssl.PROTOCOL_SSLv23
             ftp_connect(ftp, self.server, self.port)
         return ftp
         
-    def move_to_dir(self, directory=None):
-        if directory:
-            self.dir = directory
-        
+    def move_to_dir(self, directory=""):
+        if directory == "..":
+            self.dir = "/".join(self.dir.split("/")[:-1])
+        else:
+            self.dir += "/" +directory
+
+class FTP_TLS_RB(ftplib.FTP_TLS):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    def storbinary(self, cmd, fp, blocksize=8192, callback=None, rest=None, timeout=999999999):
+            """Store a file in binary mode.  A new port is created for you.
+
+                Args:
+                cmd: A STOR command.
+                fp: A file-like object with a read(num_bytes) method.
+                blocksize: The maximum data size to read from fp and send over
+                            the connection at once.  [default: 8192]
+                callback: An optional single parameter callable that is called on
+                            each block of data after it is sent.  [default: None]
+                rest: Passed to transfercmd().  [default: None]
+
+                Returns:
+                The response code.
+                """
+            import time
+
+            self.voidcmd('TYPE I')
+            with self.transfercmd(cmd, rest) as conn:
+                ProcessTime = time.perf_counter
+                start = ProcessTime()
+                t = 0
+                while t - start <= timeout:
+                    buf = fp.read(blocksize)
+                    if not buf:
+                        break
+                    conn.sendall(buf)
+                    if callback:
+                        callback(buf)
+                    t = ProcessTime()
+                # shutdown ssl layer
+                if ftplib._SSLSocket is not None and isinstance(conn, ftplib._SSLSocket):
+                    conn.unwrap()
+            return self.voidresp()
+
+class FTP_RB(ftplib.FTP):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    def storbinary(self, cmd, fp, blocksize=8192, callback=None, rest=None, timeout=999999999):
+            """Store a file in binary mode.  A new port is created for you.
+
+                Args:
+                cmd: A STOR command.
+                fp: A file-like object with a read(num_bytes) method.
+                blocksize: The maximum data size to read from fp and send over
+                            the connection at once.  [default: 8192]
+                callback: An optional single parameter callable that is called on
+                            each block of data after it is sent.  [default: None]
+                rest: Passed to transfercmd().  [default: None]
+
+                Returns:
+                The response code.
+                """
+            import time
+
+            self.voidcmd('TYPE I')
+            with self.transfercmd(cmd, rest) as conn:
+                ProcessTime = time.perf_counter
+                start = ProcessTime()
+                t = 0
+                while t - start <= timeout:
+                    buf = fp.read(blocksize)
+                    if not buf:
+                        break
+                    conn.sendall(buf)
+                    if callback:
+                        callback(buf)
+                    t = ProcessTime()
+                    
+                # shutdown ssl layer
+                if ftplib._SSLSocket is not None and isinstance(conn, ftplib._SSLSocket):
+                    conn.unwrap()
+            return self.voidresp()
 
 class ImplicitFTP_TLS(ftplib.FTP_TLS):
         """FTP_TLS subclass that automatically wraps sockets in SSL to support implicit FTPS."""
@@ -90,6 +168,40 @@ class ImplicitFTP_TLS(ftplib.FTP_TLS):
                 value = self.context.wrap_socket(value)
             self._sock = value
 
+        def storbinary(self, cmd, fp, blocksize=8192, callback=None, rest=None, timeout=999999999):
+            """Store a file in binary mode.  A new port is created for you.
+
+                Args:
+                cmd: A STOR command.
+                fp: A file-like object with a read(num_bytes) method.
+                blocksize: The maximum data size to read from fp and send over
+                            the connection at once.  [default: 8192]
+                callback: An optional single parameter callable that is called on
+                            each block of data after it is sent.  [default: None]
+                rest: Passed to transfercmd().  [default: None]
+
+                Returns:
+                The response code.
+                """
+            import time
+
+            self.voidcmd('TYPE I')
+            with self.transfercmd(cmd, rest) as conn:
+                ProcessTime = time.perf_counter
+                start = ProcessTime()
+                t = 0
+                while t - start <= timeout:
+                    buf = fp.read(blocksize)
+                    if not buf:
+                        break
+                    conn.sendall(buf)
+                    if callback:
+                        callback(buf)
+                    t = ProcessTime()
+                # shutdown ssl layer
+                if ftplib._SSLSocket is not None and isinstance(conn, ftplib._SSLSocket):
+                    conn.unwrap()
+            return self.voidresp()
             
 def ftp_connect(ftp, server, port):
         if port:
@@ -98,7 +210,7 @@ def ftp_connect(ftp, server, port):
 
             ftp.connect(server)
 
-        
+
 if module == "conn_ftp":
 
     server_ = GetParams("server_")
@@ -107,10 +219,8 @@ if module == "conn_ftp":
     pass_ = GetParams("pass_")
     tls = GetParams("tls")
     var_ = GetParams("var_")
-
     if tls is not None:
         tls = eval(tls)
-
     try:
         ftp_connection = FTP_Connection(server_, port, user_, pass_, tls)
         ftp = ftp_connection.config()
@@ -135,7 +245,9 @@ if module == "list_":
 
         files = ftp.nlst()
         print('FILES', files)
-        files = str(files).replace("'.',", "").replace("'..',", "").replace(' ', '')
+        files = [file.replace("'.',", "").replace("'..',", "") for file in files] 
+
+        #files = str(files).replace("'.',", "").replace("'..',", "")
         SetVar(var_, files)
     except Exception as e:
         PrintException()
@@ -183,6 +295,7 @@ if module == "upload_":
 
     file_ = GetParams("file_")
     var_ = GetParams("var_")
+    timeout = GetParams("timeout")
     from time import sleep
 
     try:
@@ -196,8 +309,20 @@ if module == "upload_":
 
         try: 
             ftplib._SSLSocket = None
+            global totalSize
+            totalSize = os.path.getsize(file_)
+            global sizeWritten
+            sizeWritten = 0
+            def handle(block):
+                global sizeWritten, totalSize
+                sizeWritten += 8192
+                percentComplete = round((sizeWritten / totalSize) * 100)
+                print(str(percentComplete) + "% complete remaining: " + str(totalSize - sizeWritten), flush=True)
             with open(file_, 'rb') as f:
-                up = ftp.storbinary('STOR ' + filename + '', f)
+                if timeout is not None:
+                    up = ftp.storbinary('STOR ' + filename + '', f, timeout=int(timeout))
+                else:
+                    up = ftp.storbinary('STOR ' + filename + '', f)
         except:
             ftp = ftp_connection.config()
             conn = ftp.login(ftp_connection.user, ftp_connection.pwd)
@@ -211,7 +336,7 @@ if module == "upload_":
 #            up = ftp.storbinary('STOR ' + filename + '', f)
 
         res = True
-
+    
     except:
         PrintException()
         res = False
@@ -228,12 +353,14 @@ if module == "download_":
 
         ftp = ftp_connection.config()
         conn = ftp.login(ftp_connection.user, ftp_connection.pwd)
+        ftp.set_debuglevel(2)
+        print(file_, "dir", ftp_connection.dir)
         if ftp_connection.dir:
             go_ = ftp.cwd(ftp_connection.dir)
             pwd_ = ftp.pwd()
-        
+        #ftp.retrlines("LIST -a")
         down_ = ftp.retrbinary('RETR ' + file_ + '', open(os.path.join(path_, file_), 'wb').write)
-
+        
         res = True
 
     except:
