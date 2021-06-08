@@ -389,3 +389,14 @@ if module == "delete_file":
         res = False
 
     SetVar(var_, res)
+
+
+if module == "close_conn":
+
+    try:
+        ftp = ftp_connection.config()
+        conn = ftp.login(ftp_connection.user, ftp_connection.pwd)
+        ftp.close()
+    except Exception as e:
+        PrintException()
+        raise e
