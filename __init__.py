@@ -26,7 +26,7 @@ Para instalar librerias se debe ingresar por terminal a la carpeta "libs"
 import ftplib
 import os
 import socket
-import ssl
+
 
 """
     Obtengo el modulo que fue invocado
@@ -44,6 +44,7 @@ class FTP_Connection:
         self.dir = directory
 
     def config(self):
+        import ssl
         global ImplicitFTP_TLS, ftplib, ftp_connect, socket, FTP_TLS_RB, FTP_RB
         
         if self.tls:
@@ -163,6 +164,7 @@ class ImplicitFTP_TLS(ftplib.FTP_TLS):
 
         @sock.setter
         def sock(self, value):
+            import ssl
             """When modifying the socket, ensure that it is ssl wrapped."""
             if value is not None and not isinstance(value, ssl.SSLSocket):
                 value = self.context.wrap_socket(value)
