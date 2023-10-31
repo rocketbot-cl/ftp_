@@ -35,13 +35,14 @@ global ftp_connection
 module = GetParams("module")
 
 class FTP_Connection:
-    def __init__(self, server, port, user, pwd, tls, directory=""):
+    def __init__(self, server, port, user, pwd, tls, directory="", encoding="utf-8"):
         self.server = server
         self.port = port
         self.user = user
         self.pwd = pwd
         self.tls = tls
         self.dir = directory
+        self.encoding = encoding
 
     def config(self):
         import ssl
@@ -53,11 +54,13 @@ class FTP_Connection:
                 ftp = ImplicitFTP_TLS()
                 ftp_connect(ftp, self.server, self.port)
                 ftp.af = socket.AF_INET6
+                ftp.encoding = self.encoding
             except:
                 print("Trying second tls connection")
                 ftp = FTP_TLS_RB()
                 ftp.debugging = 2
                 ftp.ssl_version = ssl.PROTOCOL_SSLv23
+                ftp.encoding = self.encoding
                 ftp_connect(ftp, self.server, self.port)
                 ftp.auth()
             ftp.prot_p()
@@ -220,11 +223,12 @@ if module == "conn_ftp":
     user_ = GetParams("user_")
     pass_ = GetParams("pass_")
     tls = GetParams("tls")
+    encoding = GetParams("encoding_") if GetParams("encoding_") else "utf-8"
     var_ = GetParams("var_")
     if tls is not None:
         tls = eval(tls)
     try:
-        ftp_connection = FTP_Connection(server_, port, user_, pass_, tls)
+        ftp_connection = FTP_Connection(server_, port, user_, pass_, tls, encoding=encoding)
         ftp = ftp_connection.config()
         conn = ftp.login(ftp_connection.user, ftp_connection.pwd)
         res = True
