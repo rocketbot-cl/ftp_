@@ -24,6 +24,8 @@ Connect to FTP to manage it with Rocketbot
 |User|FTP server user|user@test.com|
 |Password|Password of the FTP server user|******|
 |TLS|Enable TLS|True|
+|Encoding|FTP server encoding|utf-8|
+|Assign result to variable|Variable where the result of the connection will be stored|Variable|
 
 ### List directory
   
