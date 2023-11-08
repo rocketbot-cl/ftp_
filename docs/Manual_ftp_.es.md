@@ -2,7 +2,7 @@
   
 Conecta y gestiona un FTP  
 
-
+*Read this in other languages: [English](Manual_ftp_.md), [Portugues](Manual_ftp_.pr.md), [Español](Manual_ftp_.es.md).*
   
 ![banner](imgs/Banner_ftp_.png)
 ## Como instalar este módulo
@@ -24,6 +24,8 @@ Conectar con FTP para gestionarlo con Rocketbot
 |Usuario|Usuario del servidor FTP|user@test.com|
 |Contraseña|Contraseña del usuario del servidor FTP|******|
 |TLS|Activar TLS|True|
+|Codificación|Codificación del servidor FTP|utf-8|
+|Asignar resultado a variable|Variable donde se almacenará el resultado de la conexión|Variable|
 
 ### Listar directorio
   

@@ -24,6 +24,8 @@ Conectar com FTP para gerenciá-lo com Rocketbot
 |Usuário|Usuário do servidor FTP|user@test.com|
 |Senha|Senha do usuário do servidor FTP|******|
 |TLS|Ativar TLS|True|
+|Codificação|Codificação do servidor FTP|utf-8|
+|Atribuir resultado a variável|Variável onde o resultado da conexão será armazenado|Variável|
 
 ### Listar diretório
   
