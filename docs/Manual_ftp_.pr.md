@@ -1,14 +1,15 @@
 # FTP
   
-Conectar e gerenciar um FTP  
+Conecte e gerencie um servidor FTP  
 
-*Read this in other languages: [English](Manual_ftp_.md), [Portugues](Manual_ftp_.pr.md), [Español](Manual_ftp_.es.md).*
+*Read this in other languages: [English](Manual_ftp_.md), [Português](Manual_ftp_.pr.md), [Español](Manual_ftp_.es.md)*
   
 ![banner](imgs/Banner_ftp_.png)
 ## Como instalar este módulo
   
-__Baixe__ e __instale__ o conteúdo na pasta 'modules' no caminho do Rocketbot  
-
+Para instalar o módulo no Rocketbot Studio, pode ser feito de duas formas:
+1. Manual: __Baixe__ o arquivo .zip e descompacte-o na pasta módulos. O nome da pasta deve ser o mesmo do módulo e dentro dela devem ter os seguintes arquivos e pastas: \__init__.py, package.json, docs, example e libs. Se você tiver o aplicativo aberto, atualize seu navegador para poder usar o novo módulo.
+2. Automático: Ao entrar no Rocketbot Studio na margem direita você encontrará a seção **Addons**, selecione **Install Mods**, procure o módulo desejado e aperte instalar.  
 
 
 ## Descrição do comando
@@ -25,7 +26,7 @@ Conectar com FTP para gerenciá-lo com Rocketbot
 |Senha|Senha do usuário do servidor FTP|******|
 |TLS|Ativar TLS|True|
 |Codificação|Codificação do servidor FTP|utf-8|
-|Atribuir resultado a variável|Variável onde o resultado da conexão será armazenado|Variável|
+|Atribuir resultado a variável|Variável onde o resultado da conexão será armazenado|result|
 
 ### Listar diretório
   
@@ -68,6 +69,15 @@ Baixe o arquivo selecionado
 |Caminho para baixar|Caminho onde o arquivo será baixado|C:\Users\Usuário\Desktop|
 |Atribuir resultado à variável|Atribui o resultado do download à variável selecionada|Variável|
 
+### Baixar diretório
+  
+Baixe o diretório atual
+|Parâmetros|Descrição|exemplo|
+| --- | --- | --- |
+|Caminho para baixar|Caminho onde o diretório atual será baixado|C:/Users/Usuário/Desktop|
+|Incluir subdiretórios|Se marcado, os subdiretórios serão incluídos no download de forma recursiva|False|
+|Atribuir resultado à variável|Atribui o resultado do download à variável selecionada|Variável|
+
 ### Apagar arquivo
   
 Apagar arquivo no diretório atual
@@ -79,4 +89,5 @@ Apagar arquivo no diretório atual
 ### Fechar Conexão
   
 Fecha a conexão FTP
-
+|Parâmetros|Descrição|exemplo|
+| --- | --- | --- |
