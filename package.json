@@ -7,7 +7,7 @@
         "pr": "Conecte e gerencie um servidor FTP"
     },
     "disclaimer":"THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM “AS IS” WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.",
-    "version":"1.6.0",
+    "version":"1.6.1",
     "license": "MIT",
     "homepage":"http://rocketbot.com/",
     "linux": true,
@@ -85,32 +85,6 @@
                         },
                         "id": "port",
                         "css": "col-md-2"
-                    },
-                    {
-                        "type": "input",
-                        "placeholder": {
-                            "es": "Variable",
-                            "en": "Variable",
-                            "pr": "Variável"
-                        },
-                        "title": {
-                            "es": "Asignar resultado a variable:",
-                            "en": "Assign result to variable:",
-                            "pr": "Atribuir resultado a variável:"
-                        },
-                        "description": {
-                            "es": "Variable donde se almacenará el resultado de la conexión",
-                            "en": "Variable where the result of the connection will be stored",
-                            "pr": "Variável onde o resultado da conexão será armazenado"
-                        },
-                        "help": {
-                            "es": "Nombre de variable sin {}",
-                            "en": "Variable name without {}",
-                            "pr": "Nome da variável sem {}"
-                        },
-                        "remove_vars": true,
-                        "id": "var_",
-                        "css": "col-md-4"
                     },
                     {
                         "type": "input",
@@ -195,9 +169,9 @@
                     {
                         "type": "input",
                         "placeholder": {
-                            "es": "result",
-                            "en": "result",
-                            "pr": "result"
+                            "es": "Variable",
+                            "en": "Variable",
+                            "pr": "Variável"
                         },
                         "title": {
                             "es": "Asignar resultado a variable:",
@@ -209,6 +183,12 @@
                             "en": "Variable where the result of the connection will be stored",
                             "pr": "Variável onde o resultado da conexão será armazenado"
                         },
+                        "help": {
+                            "es": "Nombre de variable sin {}",
+                            "en": "Variable name without {}",
+                            "pr": "Nome da variável sem {}"
+                        },
+                        "remove_vars": true,
                         "id": "var_",
                         "css": "col-md-6"
                     }
