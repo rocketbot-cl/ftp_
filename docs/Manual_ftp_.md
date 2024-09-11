@@ -1,14 +1,15 @@
 # FTP
   
-Connect and manage an FTP  
+Connect and manage an FTP Server  
 
-*Read this in other languages: [English](Manual_ftp_.md), [Portugues](Manual_ftp_.pr.md), [Español](Manual_ftp_.es.md).*
+*Read this in other languages: [English](Manual_ftp_.md), [Português](Manual_ftp_.pr.md), [Español](Manual_ftp_.es.md)*
   
 ![banner](imgs/Banner_ftp_.png)
 ## How to install this module
   
-__Download__ and __install__ the content in 'modules' folder in Rocketbot path  
-
+To install the module in Rocketbot Studio, it can be done in two ways:
+1. Manual: __Download__ the .zip file and unzip it in the modules folder. The folder name must be the same as the module and inside it must have the following files and folders: \__init__.py, package.json, docs, example and libs. If you have the application open, refresh your browser to be able to use the new module.
+2. Automatic: When entering Rocketbot Studio on the right margin you will find the **Addons** section, select **Install Mods**, search for the desired module and press install.  
 
 
 ## Description of the commands
@@ -25,7 +26,7 @@ Connect to FTP to manage it with Rocketbot
 |Password|Password of the FTP server user|******|
 |TLS|Enable TLS|True|
 |Encoding|FTP server encoding|utf-8|
-|Assign result to variable|Variable where the result of the connection will be stored|Variable|
+|Assign result to variable|Variable where the result of the connection will be stored|result|
 
 ### List directory
   
@@ -68,6 +69,15 @@ Download the selected file
 |Path to download|Path where the file will be downloaded|C:\Users\User\Desktop|
 |Assign result to variable|Assigns the result of the download to the selected variable|Variable|
 
+### Download directory
+  
+Download the current directory
+|Parameters|Description|example|
+| --- | --- | --- |
+|Path to download|Path where the current directory will be downloaded|C:/Users/User/Desktop|
+|Include subdirectories|If checked, the subdirectories will be included in the download recursively|False|
+|Assign result to variable|Assigns the result of the download to the selected variable|Variable|
+
 ### Delete file
   
 Delete file in current directory
@@ -79,3 +89,5 @@ Delete file in current directory
 ### Close Connection
   
 Close FTP Connection
+|Parameters|Description|example|
+| --- | --- | --- |

@@ -28,10 +28,17 @@ import os
 import socket
 
 
+# Rocketbot imports
+GetParams = GetParams # type: ignore
+SetVar = SetVar # type: ignore
+PrintException = PrintException # type: ignore
+
+
+
+global ftp_connection, download_ftp_tree
 """
     Obtengo el modulo que fue invocado
 """
-global ftp_connection
 module = GetParams("module")
 
 class FTP_Connection:
@@ -215,6 +222,30 @@ def ftp_connect(ftp, server, port):
 
             ftp.connect(server)
 
+def download_ftp_tree(ftp_handle, path, destination):
+
+    try:
+        # Switch to the specified directory
+        ftp_handle.cwd(path)
+
+    except ftplib.error_perm:
+        # If error, the directory is a file, so download it
+        with open(destination, 'wb') as f:
+            ftp_handle.retrbinary('RETR ' + path, f.write)
+        return
+
+
+    # if local destination does not exist, create it
+    if not os.path.exists(destination):
+        os.makedirs(destination)
+    
+    # Get a list of all files in the directory
+    files = ftp_handle.nlst()
+
+    # Iterate over the files recursively
+    for file in files:
+        download_ftp_tree(ftp_handle, path + "/" + file, os.path.join(destination, file))
+    
 
 if module == "conn_ftp":
 
@@ -374,6 +405,45 @@ if module == "download_":
         res = False
 
     SetVar(var_, res)
+
+if module == "download_dir":
+    
+    path_ = GetParams("path_")
+    recursive = GetParams("recursive_")
+    var_ = GetParams("var_")
+
+    try:
+        ftp = ftp_connection.config()
+        conn = ftp.login(ftp_connection.user, ftp_connection.pwd)
+        if ftp_connection.dir:
+            go_ = ftp.cwd(ftp_connection.dir)
+            pwd_ = ftp.pwd()
+
+
+        
+        local_path = path_ + os.sep + pwd_ + os.sep
+        files = ftp.nlst()
+        
+        if not os.path.exists(local_path):
+            os.makedirs(local_path)
+        
+        if not recursive:
+            # Only download files in the current directory
+            for file in files:
+                if "." in file:
+                    down_ = ftp.retrbinary('RETR ' + file + '', open(local_path + file, 'wb').write)
+        else:
+            # Download all files in the current directory and subdirectories
+            download_ftp_tree(ftp, pwd_, local_path)
+
+
+
+        SetVar(var_, True)
+    except Exception as e:
+        PrintException()
+        SetVar(var_, False)
+        raise e
+
 
 if module == "delete_file":
     file_ = GetParams("file_")
