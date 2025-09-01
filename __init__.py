@@ -59,11 +59,15 @@ class FTP_Connection:
             try:
                 print("Trying first tls connection")
                 ftp = ImplicitFTP_TLS()
-                ftp_connect(ftp, self.server, self.port)
-                ftp.af = socket.AF_INET6
                 ftp.encoding = self.encoding
-            except:
+                ftp_connect(ftp, self.server, self.port)
+                try:
+                    ftp.af = socket.AF_INET6
+                except: pass
+            except Exception:
                 print("Trying second tls connection")
+                import traceback
+                traceback.print_exc()
                 ftp = FTP_TLS_RB()
                 ftp.debugging = 2
                 ftp.ssl_version = ssl.PROTOCOL_SSLv23
