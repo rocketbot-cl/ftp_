@@ -2,7 +2,7 @@
 """
 Base para desarrollo de modulos externos.
 Para obtener el modulo/Funcion que se esta llamando:
-     GetParams("module")
+    GetParams("module")
 
 Para obtener las variables enviadas desde formulario/comando Rocketbot:
     var = GetParams(variable)
@@ -59,11 +59,15 @@ class FTP_Connection:
             try:
                 print("Trying first tls connection")
                 ftp = ImplicitFTP_TLS()
-                ftp_connect(ftp, self.server, self.port)
-                ftp.af = socket.AF_INET6
                 ftp.encoding = self.encoding
-            except:
+                ftp_connect(ftp, self.server, self.port)
+                try:
+                    ftp.af = socket.AF_INET6
+                except: pass
+            except Exception:
                 print("Trying second tls connection")
+                import traceback
+                traceback.print_exc()
                 ftp = FTP_TLS_RB()
                 ftp.debugging = 2
                 ftp.ssl_version = ssl.PROTOCOL_SSLv23
@@ -117,8 +121,13 @@ class FTP_TLS_RB(ftplib.FTP_TLS):
                         callback(buf)
                     t = ProcessTime()
                 # shutdown ssl layer
-                if ftplib._SSLSocket is not None and isinstance(conn, ftplib._SSLSocket):
-                    conn.unwrap()
+                # if ftplib._SSLSocket is not None and isinstance(conn, ftplib._SSLSocket):
+                #     conn.unwrap()
+                try:
+                    if hasattr(ftplib, "_SSLSocket") and ftplib._SSLSocket is not None and isinstance(conn, ftplib._SSLSocket):
+                        conn.unwrap()
+                except Exception:
+                    pass
             return self.voidresp()
 
 class FTP_RB(ftplib.FTP):
@@ -344,22 +353,44 @@ if module == "upload_":
 
         filename = os.path.basename(file_)
 
-        try: 
-            ftplib._SSLSocket = None
+        # try: 
+        #     ftplib._SSLSocket = None
+        #     global totalSize
+        #     totalSize = os.path.getsize(file_)
+        #     global sizeWritten
+        #     sizeWritten = 0
+        #     def handle(block):
+        #         global sizeWritten, totalSize
+        #         sizeWritten += 8192
+        #         percentComplete = round((sizeWritten / totalSize) * 100)
+        #         print(str(percentComplete) + "% complete remaining: " + str(totalSize - sizeWritten), flush=True)
+        #     with open(file_, 'rb') as f:
+        #         if timeout is not None:
+        #             up = ftp.storbinary('STOR ' + filename + '', f, timeout=int(timeout))
+        #         else:
+        #             up = ftp.storbinary('STOR ' + filename + '', f)
+        try:
             global totalSize
             totalSize = os.path.getsize(file_)
             global sizeWritten
             sizeWritten = 0
+
             def handle(block):
                 global sizeWritten, totalSize
-                sizeWritten += 8192
+                sizeWritten += len(block)
                 percentComplete = round((sizeWritten / totalSize) * 100)
-                print(str(percentComplete) + "% complete remaining: " + str(totalSize - sizeWritten), flush=True)
+                print(f"{percentComplete}% complete remaining: {totalSize - sizeWritten}", flush=True)
+            try:
+                ftp.set_pasv(True)
+            except:
+                pass
+
             with open(file_, 'rb') as f:
                 if timeout is not None:
-                    up = ftp.storbinary('STOR ' + filename + '', f, timeout=int(timeout))
+                    ftp.storbinary(f"STOR {filename}", f, blocksize=65536, callback=handle, timeout=int(timeout))
                 else:
-                    up = ftp.storbinary('STOR ' + filename + '', f)
+                    ftp.storbinary(f"STOR {filename}", f, blocksize=65536, callback=handle)
+
         except:
             ftp = ftp_connection.config()
             conn = ftp.login(ftp_connection.user, ftp_connection.pwd)
@@ -374,7 +405,9 @@ if module == "upload_":
 
         res = True
     
-    except:
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         PrintException()
         res = False
 
